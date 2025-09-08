@@ -7,6 +7,7 @@ import PartnerDirectory from './components/PartnerDirectory';
 import Donations from './components/Donations';
 import { TranslationProvider, useTranslations } from './hooks/useTranslations';
 import ShareReport from './components/ShareReport';
+import ReportAndVoice from './components/ReportAndVoice';
 
 const AppContent: React.FC = () => {
     const [view, setView] = useState<AppView>('home');
@@ -17,7 +18,7 @@ const AppContent: React.FC = () => {
     const handleReportGenerated = (report: string, original: string) => {
         setGeneratedReport(report);
         setOriginalText(original);
-        setView('share-report');
+        setView('report-and-voice'); // Changed from 'share-report'
     };
 
     const renderContent = () => {
@@ -26,6 +27,8 @@ const AppContent: React.FC = () => {
                 return <Home setView={setView} />;
             case 'report-generator':
                 return <ReportGenerator onReportGenerated={handleReportGenerated} setView={setView} />;
+            case 'report-and-voice':
+                return <ReportAndVoice reportText={originalText} setView={setView} />;
             case 'share-report':
                 return <ShareReport report={generatedReport} originalText={originalText} setView={setView} />;
             case 'partner-directory':

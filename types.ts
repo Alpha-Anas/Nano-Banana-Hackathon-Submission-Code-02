@@ -17,6 +17,7 @@ export type AppView =
     | 'home'
     | 'report-generator'
     | 'report-generating'
+    | 'report-and-voice'
     | 'share-report'
     | 'partner-directory'
     | 'donations';

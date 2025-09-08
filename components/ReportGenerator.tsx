@@ -36,21 +36,14 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onReportGenerated, se
         if (recordingState === 'recorded' && audioBlob && !isProcessing) {
             handleTranscribe();
         }
-    }, [recordingState, audioBlob]);
+    }, [recordingState, audioBlob, isProcessing]);
     
-    // Effect to auto-trigger AI voice generation
+    // Effect to auto-trigger AI voice generation -> now triggers final report
     useEffect(() => {
         if (recordingState === 'transcribed' && transcribedText && !isProcessing) {
-             handleGenerateVoice();
+             handleFinalReport(); // Simplified flow
         }
-    }, [recordingState, transcribedText]);
-
-    // Effect to auto-trigger final report generation
-    useEffect(() => {
-        if (recordingState === 'voiceGenerated' && aiVoiceUrl && !isProcessing) {
-            handleFinalReport();
-        }
-    }, [recordingState, aiVoiceUrl]);
+    }, [recordingState, transcribedText, isProcessing]);
 
 
     useEffect(() => {
@@ -101,8 +94,6 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onReportGenerated, se
         processCancelledRef.current = true;
         setIsProcessing(false);
         if (recordingState === 'transcribing') setRecordingState('recorded');
-        if (recordingState === 'generatingVoice') setRecordingState('transcribed');
-        if (recordingState === 'generatingReport') setRecordingState('voiceGenerated');
     }
 
     const handleTranscribe = async () => {
@@ -124,44 +115,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onReportGenerated, se
              if(!processCancelledRef.current) setIsProcessing(false);
         }
     };
-
-    const handleGenerateVoice = async () => {
-        if (!transcribedText) return;
-        setRecordingState('generatingVoice');
-        setIsProcessing(true);
-        processCancelledRef.current = false;
-        setError(null);
-        try {
-            const voiceUrl = await generateVoice(transcribedText);
-            if(processCancelledRef.current) return;
-            setAiVoiceUrl(voiceUrl);
-            setRecordingState('voiceGenerated');
-        } catch (err) {
-            if(processCancelledRef.current) return;
-            setError(t('voiceGenerationError'));
-            setRecordingState('transcribed');
-        } finally {
-             if(!processCancelledRef.current) setIsProcessing(false);
-        }
-    };
     
     const handleFinalReport = async () => {
         if (!transcribedText) return;
-        setRecordingState('generatingReport');
-        setIsProcessing(true);
-        processCancelledRef.current = false;
-        setError(null);
-        try {
-            const report = await generateEnhancedReport(transcribedText);
-            if(processCancelledRef.current) return;
-            onReportGenerated(report, transcribedText);
-        } catch (err) {
-            if(processCancelledRef.current) return;
-            setError(t('reportGenerationError'));
-            setRecordingState('voiceGenerated');
-        } finally {
-            if(!processCancelledRef.current) setIsProcessing(false);
-        }
+        // The new flow just passes the original text to the next component.
+        // The old `generateEnhancedReport` is no longer needed here.
+        onReportGenerated("Report placeholder", transcribedText);
     };
 
     const renderStep = (stepNumber: number, titleKey: string, content: React.ReactNode, isActive: boolean) => {
@@ -251,33 +210,19 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onReportGenerated, se
                  </>
             ), recordingState === 'recorded' || recordingState === 'transcribing')}
 
-            {/* Step 3: Review Transcription */}
-            {(recordingState === 'transcribed' || recordingState === 'generatingVoice') && renderStep(3, 'step3Title', (
+            {/* Step 3: Review Transcription (Final visible step for user) */}
+            {(recordingState === 'transcribed') && renderStep(3, 'step3Title', (
                  <>
-                    {recordingState === 'generatingVoice' ? renderLoader('generatingVoiceInProgress') : (
-                        <div>
-                            <p className="text-xl text-gray-700 text-center mb-4">{t('reviewTranscriptionInstruction')}</p>
-                            <textarea
-                                value={transcribedText}
-                                onChange={e => setTranscribedText(e.target.value)}
-                                className="w-full h-48 p-4 border border-gray-300 rounded-lg text-lg"
-                            />
-                        </div>
-                    )}
+                    <div>
+                        <p className="text-xl text-gray-700 text-center mb-4">{t('reviewTranscriptionInstruction')}</p>
+                        <textarea
+                            value={transcribedText}
+                            onChange={e => setTranscribedText(e.target.value)}
+                            className="w-full h-48 p-4 border border-gray-300 rounded-lg text-lg"
+                        />
+                    </div>
                 </>
-            ), recordingState === 'transcribed' || recordingState === 'generatingVoice')}
-
-            {/* Step 4: Preview AI Voice */}
-            {(recordingState === 'voiceGenerated' || recordingState === 'generatingReport') && renderStep(4, 'step4Title', (
-                <>
-                    {recordingState === 'generatingReport' ? renderLoader('generatingReportInProgress') : (
-                        <div className="text-center">
-                            <p className="text-xl text-gray-700 mb-4">{t('previewAIVoiceInstruction')}</p>
-                            <audio src={aiVoiceUrl || ''} controls className="w-full max-w-md mx-auto" />
-                        </div>
-                    )}
-                </>
-            ), recordingState === 'voiceGenerated' || recordingState === 'generatingReport')}
+            ), recordingState === 'transcribed')}
 
         </div>
     );
