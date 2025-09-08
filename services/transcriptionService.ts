@@ -1,4 +1,3 @@
-
 // This service is now structured to call a backend API endpoint for transcription.
 // This is the recommended, secure approach as it keeps your API keys (e.g., for Google Cloud Speech-to-Text) off the client-side.
 
@@ -58,24 +57,18 @@ export const transcribeAudio = async (audioBlob: Blob, languageCode: string): Pr
 };
 
 /**
- * Provides a mock transcription based on language. Used as a fallback for testing.
+ * Provides a mock transcription based on language. Used as a fallback.
  */
 const getMockTranscription = (languageCode: string): string => {
-    // User-provided story for Urdu transcription
-    const hardcodedStoryUrdu = "میں ایک عورت ہوں جو گھریلو تشدد کا شکار ہے۔ میرا شوہر مجھے بار بار مارتا ہے۔ کل رات اس نے میرے بازو پر حملہ کیا اور دھمکی دی کہ مجھے گھر سے نکال دے گا۔ میں خوفزدہ ہوں اور مدد مانگتی ہوں۔";
-    
-    // English version for other languages, translated from the user's Urdu story
-    const hardcodedStoryEnglish = "I am a woman who is a victim of domestic violence. My husband beats me repeatedly. Last night he attacked my arm and threatened to throw me out of the house. I am scared and I am asking for help.";
-    
-    switch (languageCode) {
+     switch (languageCode) {
         case 'ur-PK':
-            return hardcodedStoryUrdu;
+            return "یہ آپ کی آڈیو ریکارڈنگ سے نقل شدہ متن کا ایک نمونہ ہے۔ ایک حقیقی ایپلیکیشن میں، سسٹم آپ کی آواز کو یہاں متن میں تبدیل کر دے گا۔ برائے مہربانی حتمی رپورٹ بنانے سے پہلے اس کا جائزہ لیں اور اگر ضروری ہو تو ترمیم کریں۔";
         case 'hi-IN':
-             return "मैं एक महिला हूं जो घरेलू हिंसा का शिकार है। मेरे पति मुझे बार-बार मारते हैं। कल रात उन्होंने मेरे हाथ पर हमला किया और मुझे घर से बाहर निकालने की धमकी दी। मैं डरी हुई हूं और मदद मांग रही हूं।";
+            return "यह आपकी ऑडियो रिकॉर्डिंग से ट्रांसक्राइब्ड टेक्स्ट का एक प्लेसहोल्डर है। एक वास्तविक एप्लिकेशन में, सिस्टम आपकी आवाज़ को यहाँ टेक्स्ट में बदल देगा। कृपया अंतिम रिपोर्ट बनाने से पहले समीक्षा करें और यदि आवश्यक हो तो संपादित करें।";
         case 'es-MX':
-            return "Soy una mujer víctima de violencia doméstica. Mi esposo me golpea repetidamente. Anoche me atacó el brazo y amenazó con echarme de la casa. Tengo miedo y pido ayuda.";
+            return "Este es un marcador de posición para el texto transcrito de su grabación de audio. En una aplicación real, el sistema convertiría su voz en texto aquí. Por favor, revíselo y edítelo si es necesario antes de generar el informe final.";
         case 'en-US':
         default:
-            return hardcodedStoryEnglish;
+            return "This is a placeholder for the transcribed text from your audio recording. In a real application, the system would convert your voice into text here. Please review and edit if necessary before generating the final report.";
     }
 }
