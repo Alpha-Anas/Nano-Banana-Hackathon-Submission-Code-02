@@ -1,5 +1,6 @@
 // This service is now structured to call a backend API endpoint for transcription.
 // This is the recommended, secure approach as it keeps your API keys (e.g., for Google Cloud Speech-to-Text) off the client-side.
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 /**
  * Sends an audio blob to the backend for transcription.
@@ -7,6 +8,15 @@
  * @param languageCode The BCP-47 language code (e.g., 'en-US', 'ur-PK').
  * @returns A promise that resolves to the transcribed text.
  */
+
+const API_KEY = process.env.ELEVENLABS_API_KEY;
+
+if (!API_KEY) {
+    console.error("API_KEY environment variable not set.");
+}
+
+
+
 export const transcribeAudio = async (audioBlob: Blob, languageCode: string): Promise<string> => {
     console.log(`Sending audio for transcription. Language: ${languageCode}, Blob size: ${audioBlob.size}`);
 
@@ -16,18 +26,23 @@ export const transcribeAudio = async (audioBlob: Blob, languageCode: string): Pr
     formData.append('languageCode', languageCode);
 
     try {
+        const elevenlabs = new ElevenLabsClient();
         // In a real application, you would create this '/api/transcribe' endpoint on your backend.
         // This endpoint would receive the audio file, call the Google Speech-to-Text API with your secret key,
         // and return the transcribed text.
-        const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            body: formData,
-        });
+        const response = await elevenlabs.speechToText.convert({
+            file: audioBlob,
+            modelId: "scribe_v1", // Model to use, for now only "scribe_v1" is supported.
+            tagAudioEvents: true, // Tag audio events like laughter, applause, etc.
+            languageCode: "eng", // Language of the audio file. If set to null, the model will detect the language automatically.
+            diarize: true, // Whether to annotate who is speaking
+            });
+            console.log(response);
 
-        if (!response.ok) {
+        if (!response || (response as any).status >= 400) {
             // Try to get a more specific error message from the backend response body
-            const errorData = await response.json().catch(() => null);
-            const errorMessage = errorData?.error || `Server responded with status: ${response.status}`;
+
+            const errorMessage = `Transcription request failed with status ${response}`;
             throw new Error(errorMessage);
         }
 
